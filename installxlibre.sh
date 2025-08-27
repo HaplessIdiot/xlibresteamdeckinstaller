@@ -62,7 +62,33 @@ EOF
     echo "[✓] HDR-aware Gamescope launcher created at $LAUNCHER_PATH"
 }
 
+remove_safe_xorg_leafs() {
+echo "[-] Removing old Xorg packages..."
+XORG_PKGS=(
+    xorg-server
+    xorg-server-common
+    xorg-apps
+    xorg-xinit
+    xorg-xrandr
+    xorg-xinput
+    xorg-xset
+    xorg-xprop
+    xorg-xev
+    xorg-xhost
+)
+
+for pkg in "${XORG_PKGS[@]}"; do
+    if pacman -Qq "$pkg" &>/dev/null; then
+        echo "[+] Removing $pkg..."
+        sudo pacman -Rns --noconfirm "$pkg" || echo "[!] Failed to remove $pkg, continuing..."
+    else
+        echo "[i] Package not found: $pkg"
+    fi
+done
+}
+
 sudo steamos-readonly disable
+
 echo "[+] Adding XLibre binary repo to pacman..."
 sudo pacman-key --recv-keys 73580DE2EDDFA6D6
 sudo pacman-key --finger 73580DE2EDDFA6D6
@@ -86,36 +112,20 @@ fi
 
 echo "[+] Syncing pacman databases..."
 sudo pacman -Sy
+# Install XLibre first, replacing Xorg in-place with --overwrite
+echo "[+] Installing XLibre packages with overwrite (in-place replace)..."
 
-echo "[-] Removing old Xorg packages..."
-XORG_PKGS=(
-    xorg-server
-    xorg-server-common
-    xorg-apps
-    xorg-xinit
-    xorg-xinput
-    xorg-xev
-    xorg-xhost
-)
-
-for pkg in "${XORG_PKGS[@]}"; do
-    if ! pacman -Qq "$pkg" &>/dev/null; then
-        echo "[i] Package not found: $pkg"
-        continue
-    fi
-
-    # Look for reverse deps — omit the package itself from the results
-    REQS=$(pactree -r "$pkg" 2>/dev/null | tail -n +2 | awk '{print $1}' | sort -u)
-
-    if [[ -n "$REQS" ]]; then
-        echo "[i] Skipping $pkg — required by: $REQS"
-        continue
-    fi
-
-    echo "[+] Removing $pkg..."
-    sudo pacman -Rns --noconfirm --nodeps "$pkg" || \
-        echo "[!] Failed to remove $pkg, continuing..."
-done
+sudo pacman -S --noconfirm \
+  --overwrite "usr/bin/X" \
+  --overwrite "usr/bin/Xorg" \
+  --overwrite "usr/lib/Xorg" \
+  --overwrite "usr/lib/xorg/*" \
+  --overwrite "usr/include/xorg/*" \
+  --overwrite "usr/lib/pkgconfig/xorg-server.pc" \
+  --overwrite "usr/share/X11/*" \
+  --overwrite "usr/share/man/man1/Xorg.1*" \
+  xlibre-xserver xlibre-xserver-common xlibre-xserver-devel \
+  xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu
 
 echo "[+] Installing XLibre packages..."
 sudo pacman -S --noconfirm xlibre-xserver xlibre-xserver-common xlibre-xserver-devel xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu
