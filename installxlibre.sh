@@ -130,6 +130,8 @@ sudo pacman -S --noconfirm \
   xlibre-xserver xlibre-xserver-common xlibre-xserver-devel \
   xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu
 
+remove_safe_xorg_leafs
+
 echo "[+] Installing gamescope-session-git from AUR..."
 cd
 if [ -d gamescope-session-git ]; then
