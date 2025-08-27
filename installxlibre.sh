@@ -113,7 +113,7 @@ for pkg in "${XORG_PKGS[@]}"; do
     fi
 
     echo "[+] Removing $pkg..."
-    sudo pacman -Rns --noconfirm "$pkg" || \
+    sudo pacman -Rns --noconfirm --nodeps "$pkg" || \
         echo "[!] Failed to remove $pkg, continuing..."
 done
 
