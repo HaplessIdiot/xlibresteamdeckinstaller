@@ -5,7 +5,7 @@ set -e
 install_xlibre_launcher() {
     local XLIBRE_LAUNCHER="/usr/local/bin/xlibre-session-launcher"
     echo "[+] Creating XLibre session launcher..."
-    sudo tee "$XLIBRE_LAUNCHER" > /dev/null <<'EOF'
+    sudo tee "$XLIBRE_LAUNCHER" > /dev/null <<EOF
 #!/bin/bash
 # Force-launch a full XLibre X server session without XWayland
 
@@ -108,7 +108,7 @@ echo "[+] Installing XLibre packages..."
 sudo pacman -S --noconfirm xlibre-xserver xlibre-xserver-common xlibre-xserver-devel xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu
 
 echo "[+] Installing gamescope-session-git from AUR..."
-cd ~
+cd
 if [ -d gamescope-session-git ]; then
     echo "[i] gamescope-session-git directory already exists."
     read -p "[?] Rebuild from scratch? (y/N): " ans
