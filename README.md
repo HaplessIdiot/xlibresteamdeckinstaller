@@ -81,7 +81,3 @@ or removing the `.desktop` autostart file in:
 ```
 
 You can always revert to the default SteamOS session by switching your SteamOS beta branch or updating the Deck from Desktop Mode.
-
----
-
-If you’d like, I can also add **examples for overriding detection** (forcing HDR or SDR mode manually) in case users want to test the opposite pipeline without changing hardware. Would you like me to add that as a short “Advanced Usage” subsection?
