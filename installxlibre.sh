@@ -74,8 +74,42 @@ if ! grep -q "^
 \[xlibre\]
 
 " /etc/pacman.conf; then
-    echo -e "\n[xlibre]\nServer = https://github.com/X11Libre/binpkg-arch-based/raw/refs/heads/main/" \
-        | sudo tee -a /etc/pacman.conf
+    # No repo stanza yet — add with TrustAll
+    {
+        echo ""
+        echo "[xlibre]"
+        echo "Server = https://github.com/X11Libre/binpkg-arch-based/raw/refs/heads/main/"
+        echo "SigLevel = Optional TrustAll"
+    } | sudo tee -a /etc/pacman.conf
+else
+    # Repo exists; ensure SigLevel is present
+    if ! grep -A2 "^
+
+\[xlibre\]
+
+" /etc/pacman.conf | grep -q "^SigLevel"; then
+        sudo tee -a /etc/pacman.conf <<< "SigLevel = Optional TrustAll"
+    else
+        # SigLevel exists — overwrite it (safe for append-at-end layouts)
+        tmpfile=$(mktemp)
+        while IFS= read -r line; do
+            echo "$line"
+            if [[ $line =~ ^
+
+\[xlibre\]
+
+$ ]]; then
+                read -r next
+                if [[ $next =~ ^SigLevel ]]; then
+                    echo "SigLevel = Optional TrustAll"
+                    continue
+                else
+                    echo "$next"
+                fi
+            fi
+        done < /etc/pacman.conf | sudo tee "$tmpfile" >/dev/null
+        sudo mv "$tmpfile" /etc/pacman.conf
+    fi
 fi
 
 echo "[+] Syncing pacman databases..."
