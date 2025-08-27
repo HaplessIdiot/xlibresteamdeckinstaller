@@ -80,7 +80,6 @@ fi
 
 echo "[+] Syncing pacman databases..."
 sudo pacman -Sy
-
 echo "[-] Removing old Xorg packages..."
 XORG_PKGS=(
     xorg-server
@@ -98,7 +97,7 @@ XORG_PKGS=(
 for pkg in "${XORG_PKGS[@]}"; do
     if pacman -Qq "$pkg" &>/dev/null; then
         echo "[+] Removing $pkg..."
-        sudo pacman -Rns --noconfirm "$pkg"
+        sudo pacman -Rns --noconfirm "$pkg" || echo "[!] Failed to remove $pkg, continuing..."
     else
         echo "[i] Package not found: $pkg"
     fi
