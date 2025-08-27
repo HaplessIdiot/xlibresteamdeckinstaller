@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 set -e
 
@@ -15,31 +16,6 @@ ask_enable_boot() {
         read -p "[?] Enable Gamescope session on boot? (y/N): " ans
         [[ "$ans" =~ ^[Yy]$ ]]
         return $?
-    fi
-}
-
-## Ensure XLibre launcher exists and forces pure X session
-install_xlibre_launcher() {
-    local XLIBRE_LAUNCHER="/usr/local/bin/xlibre-session-launcher"
-    echo "[+] Creating XLibre session launcher..."
-    sudo tee "$XLIBRE_LAUNCHER" > /dev/null <<'EOF'
-#!/bin/bash
-# Force-launch a full XLibre X server session without XWayland
-
-# Environment to force X11
-export GDK_BACKEND=x11
-export QT_QPA_PLATFORM=xcb
-unset WAYLAND_DISPLAY
-
-# Start XLibre X server
-exec /usr/bin/X -nolisten tcp vt1
-EOF
-    sudo chmod +x "$XLIBRE_LAUNCHER"
-    if [ -x "$XLIBRE_LAUNCHER" ]; then
-        echo "[✓] XLibre launcher ready at $XLIBRE_LAUNCHER"
-    else
-        echo "[!] Failed to create $XLIBRE_LAUNCHER" >&2
-        exit 1
     fi
 }
 
@@ -121,4 +97,45 @@ if [ -d gamescope-session-git ]; then
         git pull --ff-only
     fi
 else
-    git
+    git clone https://aur.archlinux.org/gamescope-session-git.git
+    cd gamescope-session-git
+fi
+
+makepkg -si --noconfirm --needed
+
+echo "[+] Creating XLibre .desktop entry..."
+mkdir -p ~/.local/share/gamescope-session
+cat <<EOF > ~/.local/share/gamescope-session/xlibre.desktop
+[Desktop Entry]
+Name=XLibre
+Exec=/usr/bin/X
+Type=Application
+EOF
+
+echo "[+] Setting XLibre as default Gamescope session..."
+mkdir -p ~/.config/gamescope-session
+echo "xlibre.desktop" > ~/.config/gamescope-session/session
+
+## HDR PATCH: Create the HDR-aware launcher here
+create_hdr_launcher
+
+if ask_enable_boot; then
+    if ! systemctl --user enable gamescope-session.target 2>&1 | grep -q "no installation config"; then
+        echo "[✓] Gamescope session will start on boot via systemd."
+    else
+        echo "[i] gamescope-session.target has no [Install] section — creating autostart entry..."
+        mkdir -p ~/.config/autostart
+        cat <<EOF > ~/.config/autostart/gamescope-session.desktop
+[Desktop Entry]
+Type=Application
+Name=Gamescope Session (HDR-Aware)
+Exec=/usr/local/bin/gamescope-hdr-aware
+X-GNOME-Autostart-enabled=true
+EOF
+        echo "[✓] Autostart entry created at ~/.config/autostart/gamescope-session.desktop"
+    fi
+else
+    echo "[i] You can manually start it with: /usr/local/bin/gamescope-hdr-aware"
+fi
+
+echo "[✓] Thanks for installing XLibre with HDR-aware fallback!"
