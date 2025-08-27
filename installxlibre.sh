@@ -93,21 +93,28 @@ XORG_PKGS=(
     xorg-server-common
     xorg-apps
     xorg-xinit
-    xorg-xrandr
     xorg-xinput
-    xorg-xset
-    xorg-xprop
     xorg-xev
     xorg-xhost
 )
 
 for pkg in "${XORG_PKGS[@]}"; do
-    if pacman -Qq "$pkg" &>/dev/null; then
-        echo "[+] Removing $pkg..."
-        sudo pacman -Rns --noconfirm --nodeps "$pkg" || echo "[!] Failed to remove $pkg, continuing..."
-    else
+    if ! pacman -Qq "$pkg" &>/dev/null; then
         echo "[i] Package not found: $pkg"
+        continue
     fi
+
+    # Look for reverse deps — omit the package itself from the results
+    REQS=$(pactree -r "$pkg" 2>/dev/null | tail -n +2 | awk '{print $1}' | sort -u)
+
+    if [[ -n "$REQS" ]]; then
+        echo "[i] Skipping $pkg — required by: $REQS"
+        continue
+    fi
+
+    echo "[+] Removing $pkg..."
+    sudo pacman -Rns --noconfirm "$pkg" || \
+        echo "[!] Failed to remove $pkg, continuing..."
 done
 
 echo "[+] Installing XLibre packages..."
