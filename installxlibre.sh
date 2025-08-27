@@ -1,6 +1,30 @@
-
 #!/usr/bin/env bash
 set -e
+
+# --- Ensure XLibre launcher exists and forces pure X session ---
+install_xlibre_launcher() {
+    local XLIBRE_LAUNCHER="/usr/local/bin/xlibre-session-launcher"
+    echo "[+] Creating XLibre session launcher..."
+    sudo tee "$XLIBRE_LAUNCHER" > /dev/null <<'EOF'
+#!/bin/bash
+# Force-launch a full XLibre X server session without XWayland
+
+# Environment to force X11
+export GDK_BACKEND=x11
+export QT_QPA_PLATFORM=xcb
+unset WAYLAND_DISPLAY
+
+# Start XLibre X server
+exec /usr/bin/X -nolisten tcp vt1
+EOF
+    sudo chmod +x "$XLIBRE_LAUNCHER"
+    if [ -x "$XLIBRE_LAUNCHER" ]; then
+        echo "[✓] XLibre launcher ready at $XLIBRE_LAUNCHER"
+    else
+        echo "[!] Failed to create $XLIBRE_LAUNCHER" >&2
+        exit 1
+    fi
+}
 
 # --- Ask GUI question for Gamescope session ---
 ask_enable_boot() {
@@ -116,7 +140,10 @@ echo "[+] Setting XLibre as default Gamescope session..."
 mkdir -p ~/.config/gamescope-session
 echo "xlibre.desktop" > ~/.config/gamescope-session/session
 
-## HDR PATCH: Create the HDR-aware launcher here
+# Install the pure-X launcher before HDR-aware wrapper
+install_xlibre_launcher
+
+# Create HDR-aware launcher after XLibre launcher exists
 create_hdr_launcher
 
 if ask_enable_boot; then
