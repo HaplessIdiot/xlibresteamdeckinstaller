@@ -69,22 +69,33 @@ XORG_PKGS=(
     xorg-server-common
     xorg-apps
     xorg-xinit
-    xorg-xrandr
     xorg-xinput
-    xorg-xset
-    xorg-xprop
     xorg-xev
     xorg-xhost
 )
 
-for pkg in "${XORG_PKGS[@]}"; do
-    if pacman -Qq "$pkg" &>/dev/null; then
-        echo "[+] Removing $pkg..."
-        sudo pacman -Rns --noconfirm "$pkg" || echo "[!] Failed to remove $pkg, continuing..."
-    else
+    local pkg="$1"
+    # Skip if it's not installed
+    if ! pacman -Q "$pkg" &>/dev/null; then
         echo "[i] Package not found: $pkg"
+        return 0
     fi
-done
+
+    # List reverse deps (skip self)
+    local rdeps
+    rdeps=$(pactree -r "$pkg" 2>/dev/null | tail -n +2)
+
+    if [[ -n "$rdeps" ]]; then
+        echo "[!] Keeping $pkg — required by: $(echo "$rdeps" | paste -sd, -)"
+        return 0
+    fi
+
+    # Attempt removal, catching any error
+    if ! sudo pacman -R --noconfirm "$pkg"; then
+        echo "[!] Failed to remove $pkg — logging and continuing"
+        # Optional: log to a file for post‑install audit
+        echo "$pkg" >>"$HOME/remove_failures.log"
+    fi
 }
 
 sudo steamos-readonly disable
