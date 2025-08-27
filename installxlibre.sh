@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 set -e
 
@@ -17,6 +18,26 @@ ask_enable_boot() {
         return $?
     fi
 }
+
+## HDR PATCH: Function to create HDR-aware launcher
+create_hdr_launcher() {
+    local LAUNCHER_PATH="/usr/local/bin/gamescope-hdr-aware"
+    sudo tee "$LAUNCHER_PATH" > /dev/null <<'EOF'
+#!/bin/bash
+HDR_ENABLED=$(cat /sys/class/drm/card0-HDMI-A-1/status 2>/dev/null | grep -q "connected" && echo "yes" || echo "no")
+
+if [ "$HDR_ENABLED" = "yes" ]; then
+    echo "Launching Gamescope in HDR mode (Wayland/XWayland)..."
+    exec gamescope --hdr --xwayland-session
+else
+    echo "Launching Gamescope in SDR mode (XLibre)..."
+    exec /usr/local/bin/xlibre-session-launcher
+fi
+EOF
+    sudo chmod +x "$LAUNCHER_PATH"
+    echo "[✓] HDR-aware Gamescope launcher created at $LAUNCHER_PATH"
+}
+
 sudo steamos-readonly disable
 echo "[+] Adding XLibre binary repo to pacman..."
 sudo pacman-key --recv-keys 73580DE2EDDFA6D6
@@ -52,12 +73,8 @@ XORG_PKGS=(
 
 for pkg in "${XORG_PKGS[@]}"; do
     if pacman -Qq "$pkg" &>/dev/null; then
-        if sudo pacman -Rns --print "$pkg" &>/dev/null; then
-            echo "[+] Removing $pkg..."
-            sudo pacman -Rns --noconfirm "$pkg"
-        else
-            echo "[i] $pkg is listed but has no removable files (already gone)"
-        fi
+        echo "[+] Removing $pkg..."
+        sudo pacman -Rns --noconfirm "$pkg"
     else
         echo "[i] Package not found: $pkg"
     fi
@@ -99,6 +116,9 @@ echo "[+] Setting XLibre as default Gamescope session..."
 mkdir -p ~/.config/gamescope-session
 echo "xlibre.desktop" > ~/.config/gamescope-session/session
 
+## HDR PATCH: Create the HDR-aware launcher here
+create_hdr_launcher
+
 if ask_enable_boot; then
     if ! systemctl --user enable gamescope-session.target 2>&1 | grep -q "no installation config"; then
         echo "[✓] Gamescope session will start on boot via systemd."
@@ -108,13 +128,14 @@ if ask_enable_boot; then
         cat <<EOF > ~/.config/autostart/gamescope-session.desktop
 [Desktop Entry]
 Type=Application
-Name=Gamescope Session
-Exec=systemctl --user start gamescope-session.target
+Name=Gamescope Session (HDR-Aware)
+Exec=/usr/local/bin/gamescope-hdr-aware
 X-GNOME-Autostart-enabled=true
 EOF
         echo "[✓] Autostart entry created at ~/.config/autostart/gamescope-session.desktop"
     fi
 else
-    echo "[i] You can manually start it with: systemctl --user start gamescope-session.target"
+    echo "[i] You can manually start it with: /usr/local/bin/gamescope-hdr-aware"
 fi
-echo "[✓] Thanks for installing XLibre!"
+
+echo "[✓] Thanks for installing XLibre with HDR-aware fallback!"
