@@ -1,7 +1,3 @@
-Here’s an updated README with a **Usage** section that explains exactly how the HDR‑aware logic behaves, so new users (especially OLED Steam Deck owners) know what to expect after install. I’ve kept the formatting consistent with your existing style:
-
----
-
 # XLibre Steam Deck Installer
 
 ⚡ A modular, community‑driven installer for XLibre on Steam Deck.  
