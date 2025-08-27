@@ -80,6 +80,7 @@ fi
 
 echo "[+] Syncing pacman databases..."
 sudo pacman -Sy
+
 echo "[-] Removing old Xorg packages..."
 XORG_PKGS=(
     xorg-server
