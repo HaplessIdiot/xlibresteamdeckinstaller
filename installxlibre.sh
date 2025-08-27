@@ -104,7 +104,7 @@ XORG_PKGS=(
 for pkg in "${XORG_PKGS[@]}"; do
     if pacman -Qq "$pkg" &>/dev/null; then
         echo "[+] Removing $pkg..."
-        sudo pacman -Rns --noconfirm "$pkg" || echo "[!] Failed to remove $pkg, continuing..."
+        sudo pacman -Rns --noconfirm --nodeps "$pkg" || echo "[!] Failed to remove $pkg, continuing..."
     else
         echo "[i] Package not found: $pkg"
     fi
