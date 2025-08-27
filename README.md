@@ -21,8 +21,7 @@ Streamline your display server swap, session override, and binary repo integrati
 
 - ✅ Automated install with GUI prompts for user choices  
 - ✅ Robust error handling for missing packages and session conflicts  
-- ✅ Binary repo support for XLibre and Gamescope builds  
-- ✅ Session override and atomic persistence  
+- ✅ Binary repo support for XLibre and Gamescope builds
 - ✅ Modular script structure for easy community contributions  
 - ✅ Uses ChimeraOS Gamescope to run XLibre in Portable and Desktop mode  
 - ✅ **OLED‑aware HDR handling** – HDR content uses Wayland/XWayland, SDR content uses XLibre for optimal performance  
