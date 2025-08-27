@@ -93,9 +93,6 @@ echo "[+] Adding XLibre binary repo to pacman..."
 sudo pacman-key --recv-keys 73580DE2EDDFA6D6
 sudo pacman-key --finger 73580DE2EDDFA6D6
 sudo pacman-key --lsign-key 73580DE2EDDFA6D6
-sudo pacman-key --recv-keys 9B5D4A1F8E2C7F314C9A2F774E2A9C1B7F4D8EBD
-sudo pacman-key --finger 9B5D4A1F8E2C7F314C9A2F774E2A9C1B7F4D8EBD
-sudo pacman-key --lsign-key 9B5D4A1F8E2C7F314C9A2F774E2A9C1B7F4D8EBD
 
 echo "[+] Updating /etc/pacman.conf with xlibre repo..."
 
