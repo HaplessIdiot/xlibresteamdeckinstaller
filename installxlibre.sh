@@ -127,9 +127,6 @@ sudo pacman -S --noconfirm \
   xlibre-xserver xlibre-xserver-common xlibre-xserver-devel \
   xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu
 
-echo "[+] Installing XLibre packages..."
-sudo pacman -S --noconfirm xlibre-xserver xlibre-xserver-common xlibre-xserver-devel xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu
-
 echo "[+] Installing gamescope-session-git from AUR..."
 cd
 if [ -d gamescope-session-git ]; then
