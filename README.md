@@ -42,7 +42,7 @@ Optional: familiarity with shell scripting and mod workflows
 Clone the repo and run the installer:
 
 bash
-git clone https://github.com/HaplessIdiot/xlibresteamdeckinstaller.git
+```git clone https://github.com/HaplessIdiot/xlibresteamdeckinstaller.git
 cd xlibresteamdeckinstaller
 chmod +x installxlibre.sh
-./installxlibre.sh
+./installxlibre.sh```
