@@ -62,49 +62,19 @@ EOF
     echo "[✓] HDR-aware Gamescope launcher created at $LAUNCHER_PATH"
 }
 
-remove_safe_xorg_leafs() {
-echo "[-] Removing old Xorg packages..."
-XORG_PKGS=(
-    xorg-server
-    xorg-server-common
-    xorg-apps
-    xorg-xinit
-    xorg-xinput
-    xorg-xev
-    xorg-xhost
-)
-
-    local pkg="$1"
-    # Skip if it's not installed
-    if ! pacman -Q "$pkg" &>/dev/null; then
-        echo "[i] Package not found: $pkg"
-        return 0
-    fi
-
-    # List reverse deps (skip self)
-    local rdeps
-    rdeps=$(pactree -r "$pkg" 2>/dev/null | tail -n +2)
-
-    if [[ -n "$rdeps" ]]; then
-        echo "[!] Keeping $pkg — required by: $(echo "$rdeps" | paste -sd, -)"
-        return 0
-    fi
-
-    # Attempt removal, catching any error
-    if ! sudo pacman -R --noconfirm "$pkg"; then
-        echo "[!] Failed to remove $pkg — logging and continuing"
-        # Optional: log to a file for post‑install audit
-        echo "$pkg" >>"$HOME/remove_failures.log"
-    fi
-}
 
 sudo steamos-readonly disable
 
 echo "[+] Adding XLibre binary repo to pacman..."
+sudo pacman-key --init
 sudo pacman-key --recv-keys 73580DE2EDDFA6D6
 sudo pacman-key --finger 73580DE2EDDFA6D6
 sudo pacman-key --lsign-key 73580DE2EDDFA6D6
-
+sudo pacman -Syy archlinux-keyring
+sudo pacman-key --export AF1D2199EF0A3CCF > steamos-ci.pub
+sudo pacman-key --add steamos-ci.pub
+sudo pacman-key --lsign-key AF1D2199EF0A3CCF
+sudo pacman-key --populate archlinux steamos
 echo "[+] Updating /etc/pacman.conf with xlibre repo..."
 
 # If the [xlibre] section doesn't exist, append it
@@ -123,6 +93,8 @@ fi
 
 echo "[+] Syncing pacman databases..."
 sudo pacman -Sy
+echo "[+] Removing Xorg..."
+sudo pacman -Rdd xorg-server xorg-server-common xf86-input-libinput xf86-video-amdgpu
 # Install XLibre first, replacing Xorg in-place with --overwrite
 echo "[+] Installing XLibre packages with overwrite (in-place replace)..."
 
@@ -138,7 +110,7 @@ sudo pacman -S --noconfirm \
   xlibre-xserver xlibre-xserver-common xlibre-xserver-devel \
   xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu
 
-remove_safe_xorg_leafs
+
 
 echo "[+] Installing gamescope-session-git from AUR..."
 cd
@@ -199,3 +171,4 @@ else
 fi
 
 echo "[✓] Thanks for installing XLibre with HDR-aware fallback!"
+XLibre with HDR-aware fallback!"
