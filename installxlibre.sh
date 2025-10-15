@@ -113,11 +113,46 @@ sudo pacman -S --noconfirm \
   xlibre-xserver xlibre-xserver-common xlibre-xserver-devel \
   xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu
 
+echo "[+] Installing build dependencies for AUR packages..."
+sudo pacman -S --needed base-devel fakeroot debugedit git
 
+echo "[+] Preparing kwin-x11-lite build..."
+cd ~
+if [ -d kwin-x11-lite ]; then
+    echo "[i] kwin-x11-lite directory already exists."
+    read -p "[?] Rebuild from scratch? (y/N): " ans
+    if [[ "$ans" =~ ^[Yy]$ ]]; then
+        rm -rf kwin-x11-lite
+        git clone https://aur.archlinux.org/kwin-x11-lite.git
+    fi
+else
+    git clone https://aur.archlinux.org/kwin-x11-lite.git
+fi
 
+cd kwin-x11-lite
+
+# Backup PKGBUILD only if not already backed up
+[ ! -f PKGBUILD.orig ] && cp PKGBUILD PKGBUILD.orig
+
+sed -i \
+  -e 's/aurorae//g' \
+  -e 's/plasma-x11-session//g' \
+  -e 's/libplasma=6\.[0-9]\+\(\.[0-9]\+\)\?/libplasma/g' \
+  -e 's/libplasma>=6\.[0-9]\+\(\.[0-9]\+\)\?/libplasma/g' \
+  PKGBUILD
+
+# Clean up whitespace
+sed -i 's/  / /g' PKGBUILD
+
+# Regenerate .SRCINFO so makepkg sees patched deps
+makepkg --printsrcinfo > .SRCINFO
+
+echo "[✓] PKGBUILD patched — proceeding with build..."
+makepkg -si --noconfirm --needed || {
+    echo "[!] kwin-x11-lite build failed — continuing without it."
+}
 echo "[+] Installing gamescope-session-git from AUR..."
-sudo pacman -S --needed base-devel debugedit
-cd
+cd ~
 if [ -d gamescope-session-git ]; then
     echo "[i] gamescope-session-git directory already exists."
     read -p "[?] Rebuild from scratch? (y/N): " ans
