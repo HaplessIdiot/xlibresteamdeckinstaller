@@ -175,4 +175,3 @@ else
 fi
 
 echo "[✓] Thanks for installing XLibre with HDR-aware fallback!"
-e fallback!"
