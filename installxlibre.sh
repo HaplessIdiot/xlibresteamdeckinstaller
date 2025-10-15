@@ -70,25 +70,28 @@ sudo pacman-key --init
 sudo pacman-key --recv-keys 73580DE2EDDFA6D6
 sudo pacman-key --finger 73580DE2EDDFA6D6
 sudo pacman-key --lsign-key 73580DE2EDDFA6D6
-sudo pacman -Syy archlinux-keyring
+sudo pacman-key --recv-keys AF1D2199EF0A3CCF
 sudo pacman-key --export AF1D2199EF0A3CCF > steamos-ci.pub
 sudo pacman-key --add steamos-ci.pub
 sudo pacman-key --lsign-key AF1D2199EF0A3CCF
-sudo pacman-key --populate archlinux steamos
+sudo pacman-key --populate archlinux
+sudo pacman-key --lsign-key AF1D2199EF0A3CCF
+sudo pacman -Syy archlinux-keyring
+
 echo "[+] Updating /etc/pacman.conf with xlibre repo..."
 
-# If the [xlibre] section doesn't exist, append it
-if ! grep -Eq '^[[:space:]]*
+ARCH=$(uname -m)   # usually x86_64 on Steam Deck
 
-\[xlibre\]
-
-' /etc/pacman.conf; then
+if curl -sI "https://x11libre.net/repo/arch_based/${ARCH}/xlibre.db" | grep -q "200 OK"; then
     {
         echo ""
         echo "[xlibre]"
-        echo "Server = https://github.com/X11Libre/binpkg-arch-based/raw/refs/heads/main/"
+        echo "Server = https://x11libre.net/repo/arch_based/\$arch"
         echo "SigLevel = Optional TrustAll"
     } | sudo tee -a /etc/pacman.conf >/dev/null
+    echo "[✓] XLibre repo added for $ARCH"
+else
+    echo "[!] No valid XLibre pacman repo found — falling back to source build."
 fi
 
 echo "[+] Syncing pacman databases..."
@@ -113,6 +116,7 @@ sudo pacman -S --noconfirm \
 
 
 echo "[+] Installing gamescope-session-git from AUR..."
+sudo pacman -S --needed base-devel debugedit
 cd
 if [ -d gamescope-session-git ]; then
     echo "[i] gamescope-session-git directory already exists."
@@ -171,4 +175,4 @@ else
 fi
 
 echo "[✓] Thanks for installing XLibre with HDR-aware fallback!"
-XLibre with HDR-aware fallback!"
+e fallback!"
