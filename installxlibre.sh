@@ -76,7 +76,7 @@ sudo pacman-key --add steamos-ci.pub
 sudo pacman-key --lsign-key AF1D2199EF0A3CCF
 sudo pacman-key --populate archlinux
 sudo pacman-key --lsign-key AF1D2199EF0A3CCF
-sudo pacman -Syy archlinux-keyring
+sudo pacman -Syy --noconfirm archlinux-keyring
 
 echo "[+] Updating /etc/pacman.conf with xlibre repo..."
 
@@ -97,7 +97,7 @@ fi
 echo "[+] Syncing pacman databases..."
 sudo pacman -Sy
 echo "[+] Removing Xorg..."
-sudo pacman -Rdd xorg-server xorg-server-common xf86-input-libinput xf86-video-amdgpu
+sudo pacman -Rdd --noconfirm xorg-server xorg-server-common xf86-input-libinput xf86-video-amdgpu
 # Install XLibre first, replacing Xorg in-place with --overwrite
 echo "[+] Installing XLibre packages with overwrite (in-place replace)..."
 
@@ -111,7 +111,8 @@ sudo pacman -S --noconfirm \
   --overwrite "usr/share/X11/*" \
   --overwrite "usr/share/man/man1/Xorg.1*" \
   xlibre-xserver xlibre-xserver-common xlibre-xserver-devel \
-  xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu
+  xlibre-xf86-input-libinput xlibre-xf86-video-amdgpu \
+  xlibre-xf86-input-joystick xf86-input-synaptics
 
 echo "[+] Installing build dependencies for AUR packages..."
 sudo pacman -S --needed base-devel fakeroot debugedit git
